@@ -1,0 +1,28 @@
+---
+- name: install lamp server on ubuntu
+  hosts: all
+  become: yes
+  vars:
+    info_page_path: /var/www/html/info.php
+  tasks:
+    - name: update packages and install apache
+      ansible.builtin.package:
+        name: "{{package_name}}"
+        update_cache: yes
+        state: present
+    - name: install php packages
+      ansible.builtin.package:
+        name: "{{item}}"
+        state: present
+      loop: "{{php_packages}}"
+      notify:
+        - restart apache2
+    - name: copy info.php page
+      ansible.builtin.copy:
+        src: info.php
+        dest: "{{info_page_path}}"
+  handlers:
+    - name: restart apache2
+      ansible.builtin.service:
+        name: "{{package_name}}"
+        state: restarted

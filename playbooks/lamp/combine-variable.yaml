@@ -1,0 +1,85 @@
+---
+- name: install lamp server
+  hosts: all
+  become: yes
+  vars:
+    info_page_path: /var/www/html/info.php
+  tasks:
+    - name: install httpd server
+      ansible.builtin.yum:
+        name: "{{ package_name }}"
+        state: present
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: debug httpd installed
+      ansible.builtin.debug:
+        msg: "Installed httpd server using package {{ package_name }}"
+    - name: enable and start httpd
+      ansible.builtin.service:
+        name: "{{ package_name }}"
+        enabled: yes
+        state: started
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: debug httpd service started
+      ansible.builtin.debug:
+        msg: "Enable and started httpd server"
+    - name: install php server
+      ansible.builtin.yum:
+        name: "{{ php_packages }}"
+        state: present
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: debug php module installed
+      ansible.builtin.debug:
+        msg: "Installed php module using package {{ php_packages }}"
+    - name: copy info.php file
+      ansible.builtin.copy:
+        src: info.php
+        dest: "{{ info_page_path }}"
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: debug info.php
+      ansible.builtin.debug:
+        msg: "Created info.php at {{ info_page_path }}"
+    - name: update packages and install apache
+      ansible.builtin.package:
+        name: "{{ package_name }}"
+        update_cache: yes
+        state: present
+      when: ansible_facts['os_family'] == 'Ubuntu'
+    - name: debug apache2 installed
+      ansible.builtin.debug:
+        msg: "Installed apache2 using package {{ package_name }}"
+    - name: install php packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ php_packages }}"
+      notify:
+        - restart apache2
+      when: ansible_facts['os_family'] == 'Ubuntu'
+    - name: debug php module installed
+      ansible.builtin.debug:
+        msg: "Installed php module using package {{ php_packages }}"
+    - name: copy info.php page
+      ansible.builtin.copy:
+        src: info.php
+        dest: "{{ info_page_path }}"
+      notify:
+        - restart apache2
+      when: ansible_facts['os_family'] == 'Ubuntu'
+    - name: debug info.php
+      ansible.builtin.debug:
+        msg: "Created info.php at {{ info_page_path }}"
+  handlers:
+    - name: restart apache2
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
+    - name: restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted

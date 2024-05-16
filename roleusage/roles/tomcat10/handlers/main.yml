@@ -1,0 +1,19 @@
+---
+# handlers file for tomcat10
+- name: reload daemon
+  ansible.builtin.service:
+    daemon_reload: yes
+- name: Recursively change ownership of a directory
+  ansible.builtin.file:
+    path: "{{ homedir }}"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+    group: "{{ group }}"
+- name: add execute permission for shell script
+  ansible.builtin.shell:
+    cmd: "chmod +x {{ homedir }}/latest/bin/*.sh"
+- name: restart tomcat
+  ansible.builtin.service:
+    name: tomcat
+    state: restarted

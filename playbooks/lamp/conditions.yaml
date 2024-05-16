@@ -1,0 +1,64 @@
+---
+- name: install lamp server on redhat
+  hosts: redhat
+  become: yes
+  tasks:
+    - name: install httpd server
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: enable and start httpd
+      ansible.builtin.service:
+        name: httpd
+        enabled: yes
+        state: started
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: install php server
+      ansible.builtin.yum:
+        name: php
+        state: present
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: copy info.php file
+      ansible.builtin.copy:
+        src: info.php
+        dest: /var/www/html/info.php
+      notify:
+        - restart httpd
+      when: ansible_facts['os_family'] == 'RedHat'
+    - name: update packages and install apache
+      ansible.builtin.package:
+        name: apache2
+        update_cache: yes
+        state: present
+      when: ansible_facts['os_family'] == 'Ubuntu'
+    - name: install php packages
+      ansible.builtin.package:
+        name:
+          - php
+          - libapache2-mod-php
+          - php-mysql
+        state: present
+      notify:
+        - restart apache2
+      when: ansible_facts['os_family'] == 'Ubuntu'
+    - name: copy info.php page
+      ansible.builtin.copy:
+        src: info.php
+        dest: /var/www/html/info.php
+      notify:
+        - restart apache2
+      when: ansible_facts['os_family'] == 'Ubuntu'
+  handlers:
+    - name: restart apache2
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
+    - name: restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted

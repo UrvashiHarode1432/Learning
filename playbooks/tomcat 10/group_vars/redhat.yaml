@@ -1,0 +1,11 @@
+---
+java_package: java-11-openjdk
+group: tomcat
+user: tomcat
+shell: /bin/false
+homedir: /opt/tomcat
+tomcat_major_version: 10
+tomcat_version: 10.1.23
+tomcat_user_name: devops
+tomcat_user_pwd: devops
+tomcat_context_valve_allow: ".*"
